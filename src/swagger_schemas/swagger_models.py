@@ -2,6 +2,7 @@ from flask_restx import fields, Namespace
 
 user_ns = Namespace("users", description="Операции с пользователями")
 auth_ns = Namespace("auth", description="Аутентификация")
+mail_ns = Namespace("mail", description="Работа с mail")
 # Login
 login_model = user_ns.model("Login", {
     "email": fields.String(required=True, description="Email"),

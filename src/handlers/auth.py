@@ -2,6 +2,7 @@ from flask import request, make_response, g
 from flask_restx import Resource
 
 from src.db import db
+from src.db import models
 from src.auth import tokens
 from src.schemas import user_schemas
 from src.swagger_schemas.swagger_models import auth_ns
@@ -33,7 +34,7 @@ class LogoutToken(Resource):
         resp = make_response({'message': 'Вы вышли из системы'})
         resp.set_cookie("auth_reader", max_age=0, httponly=True, samesite='Lax')
         resp.set_cookie("refresh_token", max_age=0, httponly=True, samesite='Lax')
-        token = db.session.query(RefreshToken).filter_by(refresh_token=request.cookies.get("refresh_token")).first()
+        token = models.RefreshToken.get_by_token(token=request.cookies.get("refresh_token"))
         if not token:
             return {'message': 'No refresh token'}, 201
         db.session.delete(token)

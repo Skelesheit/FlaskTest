@@ -24,7 +24,7 @@ class UserRegister(Resource):
             validated_data = user_schemas.RegisterSchema().load(data)
         except ValidationError as e:
             return {'message': 'Validation failed', 'errors': e.messages}, 400
-        if db.session.query(User).filter(User.email == validated_data['email']).first():
+        if User.has_email(validated_data['email']):
             return {'message': 'Такой пользователь уже существует'}, 400
         # теперь создание пользователя
         hashed = utils.hash_password(validated_data['password'])
@@ -48,12 +48,11 @@ class UserLogin(Resource):
             validated_data = user_schemas.LoginSchema().load(data)
         except ValidationError as e:
             return {'message': 'Validation failed', 'errors': e.messages}, 400
-        hashed = utils.hash_password(validated_data['password'])
-        user = db.session.query(User).filter(User.email == validated_data['email']).first()
-        if not user or utils.validate(user.password, hashed):
+        user = User.get_by_email(validated_data['email'])
+        if not user or user.check_password(validated_data['password']):
             return ('message', 'Пользователь ввёл неправильные данные'), 401
         refresh_token = tokens.create_refresh_token(user.id)
-        access_token = tokens.generate_access_token(refresh_token)
+        access_token = tokens.generate_access_token(user.id)
         response = make_response({
             'access_token': access_token,
             'token_type': 'Bearer',
@@ -92,7 +91,8 @@ class UserFillData(Resource):
                     validated_data = user_schemas.LegalEntityProfileSchema().load(data['form'])
         except ValidationError as e:
             return {'message': 'Validation failed', 'errors': e.messages}, 400
-        validated_data['user_type'] = str(user_type)
         validated_data['user_id'] = g.user.id
         db.session.add(validated_data)
         db.session.commit()
+
+        return {'message', 'Forms filled successfully'}, 201

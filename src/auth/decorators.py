@@ -21,7 +21,7 @@ def auth_required(f):
             user_id = tokens.validate_token(token)
         except Exception as e:
             return jsonify({'message': str(e)}), 401
-        g.user = db.session(User).filter(User.id == user_id).first()
+        g.user = User.get_by_id(user_id)
         return f(*args, **kwargs)
     return decorated_function
 

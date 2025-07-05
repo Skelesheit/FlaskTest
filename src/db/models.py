@@ -4,6 +4,10 @@ from sqlalchemy import Column, Integer, String, func
 from sqlalchemy import DateTime, Enum, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+
+import db
+from src.utils import validate
+
 Base = declarative_base()
 
 
@@ -27,6 +31,27 @@ class User(Base):
     def __repr__(self):
         return f"<User id={self.id} email={self.email}>"
 
+    @classmethod
+    def verify_email(cls, user_id: int) -> bool:
+        updated = db.session.query(cls).filter_by(id=user_id).update({'is_verified': True})
+        db.session.commit()
+        return updated > 0
+
+    @classmethod
+    def get_by_id(cls, user_id: int) -> 'User | None':
+        return db.session.query(cls).filter_by(id=user_id).first()
+
+    def check_password(self, password: str) -> bool:
+        return validate(password, self.password)
+
+    @classmethod
+    def has_email(cls, email: str) -> bool:
+        return db.session.query(cls).filter_by(email=email).first() is not None
+
+    @classmethod
+    def get_by_email(cls, email: str) -> 'User | None':
+        return db.session.query(cls).filter_by(email=email).first()
+
 
 class RefreshToken(Base):
     __tablename__ = 'token'
@@ -36,6 +61,11 @@ class RefreshToken(Base):
     expires_at = Column(DateTime(), nullable=False)
 
     user = relationship('User', back_populates='token', uselist=False, nullable=False)
+
+
+    @classmethod
+    def get_by_token(cls, token: str) -> 'User | None':
+        return db.session.query(cls).filter_by(token=token).first()
 
     @property
     def expired(self) -> bool:
