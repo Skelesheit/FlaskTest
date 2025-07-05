@@ -5,6 +5,7 @@ from config import settings
 from src.handlers.auth import auth_ns
 from src.handlers.user import user_ns
 from src.handlers.mail import mail_ns
+from src.handlers.dadata import dadata_ns
 from src.services.mail.extentions import init_extensions
 
 
@@ -26,6 +27,7 @@ def create_app():
     api.add_namespace(user_ns, path="/user")
     api.add_namespace(auth_ns, path="/auth")
     api.add_namespace(mail_ns, path="/mail")
+    api.add_namespace(dadata_ns, path="/dadata")
 
     return app
 

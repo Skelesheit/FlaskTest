@@ -9,6 +9,7 @@ from src.db import db
 from src.db.enums import UserType
 from src.db.models import User
 from src.schemas import user_schemas
+from src.services.captcha.yandex import verify_yandex_captcha
 from src.swagger_schemas import swagger_models
 from src.swagger_schemas.swagger_models import user_ns
 
@@ -24,6 +25,11 @@ class UserRegister(Resource):
             validated_data = user_schemas.RegisterSchema().load(data)
         except ValidationError as e:
             return {'message': 'Validation failed', 'errors': e.messages}, 400
+
+        captcha_token = validated_data.get("captchaToken")
+        if not captcha_token or not verify_yandex_captcha(captcha_token):
+            return {"message": "Капча не пройдена"}, 400
+
         if User.has_email(validated_data['email']):
             return {'message': 'Такой пользователь уже существует'}, 400
         # теперь создание пользователя

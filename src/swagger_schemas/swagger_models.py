@@ -3,6 +3,7 @@ from flask_restx import fields, Namespace
 user_ns = Namespace("users", description="Операции с пользователями")
 auth_ns = Namespace("auth", description="Аутентификация")
 mail_ns = Namespace("mail", description="Работа с mail")
+dadata_ns = Namespace("dadata", description="Dadata сервис")
 # Login
 login_model = user_ns.model("Login", {
     "email": fields.String(required=True, description="Email"),
@@ -13,11 +14,7 @@ login_model = user_ns.model("Login", {
 register_model = user_ns.model("Register", {
     "email": fields.String(required=True, description="Email", example="user@example.com"),
     "password": fields.String(required=True, description="Пароль", min_length=6),
-    "user_type": fields.String(
-        required=True,
-        description="Тип пользователя",
-        enum=["ИП", "Юр. лицо", "Физ. лицо"]
-    ),
+    "captchaToken": fields.String(required=True, description="токен от яндекса"),
 })
 
 # Contact

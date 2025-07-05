@@ -40,6 +40,14 @@ class Settings:
     # Vue Frontend
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:4700")
 
+    # Yandex captcha
+    yandex_url_verify = os.getenv("YANDEX_URL_VERIFY")
+    yandex_secret = os.getenv("YANDEX_CAPTCHA_SECRET")
+
+    # Dadata service
+    dadata_token = os.getenv("DADATA_TOKEN")
+    dadata_api_url = os.getenv("DADATA_API_URL")
+
     @property
     def db_url(self) -> str:
         return (

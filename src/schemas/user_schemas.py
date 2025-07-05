@@ -25,7 +25,7 @@ class UserSchema(SQLAlchemySchema):
 class RegisterSchema(Schema):
     email = fields.Email(required=True, validate=validate.Length(max=255))
     password = fields.String(required=True, validate=validate.Length(min=6))
-    user_type = fields.String(required=True, validate=validate.OneOf(['ИП', 'Юр. лицо', 'Физ. лицо']))
+    captchaToken = fields.String(required=True)
 
 
 class LoginSchema(Schema):
