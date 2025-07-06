@@ -1,0 +1,1 @@
+from src.admin.admin import init_admin

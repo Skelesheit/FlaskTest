@@ -1,8 +1,9 @@
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, ValidationError, post_load
 from marshmallow.fields import Nested
 from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
 
 from src.db import models
+from src.db.enums import UserType
 
 
 class UserSchema(SQLAlchemySchema):
@@ -31,6 +32,28 @@ class RegisterSchema(Schema):
 class LoginSchema(Schema):
     email = fields.Email(required=True)
     password = fields.String(required=True)
+
+
+class FillShema(Schema):
+    user_type = fields.String(required=True)
+    fill = fields.Dict(required=True)
+    contact = Nested('ContactSchema')
+
+    @post_load
+    def process_fill(self, data, **kwargs):
+        user_type = UserType(data['user_type'])
+        fill_data = data['fill']
+        match user_type:
+            case user_type.Individual:
+                obj = IndividualProfileSchema().load(fill_data)
+            case user_type.LegalEntity:
+                obj = LegalEntityProfileSchema().load(fill_data)
+            case user_type.LegalEntityProfile:
+                obj = LegalEntityProfileSchema().load(fill_data)
+            case _:
+                raise ValidationError('Невалидный user_type')
+        obj.user.id = self.context['user'].id
+        return obj
 
 
 class ContactSchema(SQLAlchemySchema):
@@ -82,11 +105,3 @@ class LegalEntityProfileSchema(SQLAlchemySchema):
     opf_full = auto_field()
     opf_short = auto_field()
     legal_entity = fields.Nested(LegalEntitySchema, only=("id",))
-
-
-class UserTypeSchema(SQLAlchemySchema):
-    class Meta:
-        model = models.User
-        load_instance = True
-        include_relationships = True
-        fields = ('user_type',)

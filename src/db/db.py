@@ -6,7 +6,9 @@ print(settings.db_url)
 
 engine = create_engine(settings.db_url, echo=True)
 
-session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine)
+
+session = Session()
 
 if __name__ == '__main__':
     with engine.connect() as connection:

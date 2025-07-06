@@ -3,11 +3,10 @@ from flask_restx import Api
 
 from config import settings
 from src.handlers.auth import auth_ns
-from src.handlers.user import user_ns
-from src.handlers.mail import mail_ns
 from src.handlers.dadata import dadata_ns
+from src.handlers.mail import mail_ns
+from src.handlers.user import user_ns
 from src.services.mail.extentions import init_extensions
-
 
 def create_app():
     app = Flask(__name__)
@@ -23,7 +22,22 @@ def create_app():
 
     init_extensions(app)
 
-    api = Api(app, title="NeuroCam", version="1.0", description="Документация через Swagger")
+    authorizations = {
+        'BearerAuth': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': 'Введите JWT с префиксом **Bearer**, например: `Bearer <token>`'
+        }
+    }
+
+    api = Api(app,
+              title="NeuroCam",
+              version="1.0",
+              description="Документация через Swagger",
+              authorizations=authorizations,
+              security='BearerAuth'
+              )
     api.add_namespace(user_ns, path="/user")
     api.add_namespace(auth_ns, path="/auth")
     api.add_namespace(mail_ns, path="/mail")

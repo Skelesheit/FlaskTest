@@ -1,8 +1,8 @@
 from functools import wraps
+
 from flask import request, jsonify, g
-from src.db import db
-from src.db import models
-import tokens
+
+from src.auth import tokens
 from src.db.models import User
 
 
@@ -23,7 +23,9 @@ def auth_required(f):
             return jsonify({'message': str(e)}), 401
         g.user = User.get_by_id(user_id)
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 def user_verified(f):
     @wraps(f)
@@ -31,5 +33,3 @@ def user_verified(f):
         if g.user.is_verified:
             return f(*args, **kwargs)
         return jsonify({'message': 'Not verified'}), 401
-
-

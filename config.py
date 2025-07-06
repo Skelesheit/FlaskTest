@@ -48,6 +48,10 @@ class Settings:
     dadata_token = os.getenv("DADATA_TOKEN")
     dadata_api_url = os.getenv("DADATA_API_URL")
 
+    # Admin panel
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_password = os.getenv("ADMIN_PASSWORD")
+
     @property
     def db_url(self) -> str:
         return (
