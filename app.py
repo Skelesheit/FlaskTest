@@ -1,5 +1,6 @@
 from flask import Flask, g
 from flask_restx import Api
+from flask_cors import CORS
 
 from config import settings
 from src.handlers.auth import auth_ns
@@ -12,6 +13,8 @@ from src.services.mail.extentions import init_extensions
 def create_app():
     app = Flask(__name__)
 
+    # пока что пусть будут все запросы проходить
+    CORS(app, resources={r"/*": {"origins": settings.frontend_url}}, supports_credentials=True)
     app.config.update(
         MAIL_SERVER=settings.mail_server,
         MAIL_PORT=settings.mail_port,
