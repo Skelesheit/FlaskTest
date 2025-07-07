@@ -5,6 +5,6 @@ def generate_html(confirm_url: str) -> str:
     return f"""
         <p>Здравствуйте!</p>
         <p>Пожалуйста, подтвердите свою почту, перейдя по ссылке:</p>
-        <p><a href="{confirm_url}">{confirm_url}</a></p>
+        <p><a href="{confirm_url}">Подтвердить</a></p>
         <p>Если вы не регистрировались — просто проигнорируйте это письмо.</p>
         """

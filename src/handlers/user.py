@@ -25,7 +25,11 @@ class UserRegister(Resource):
         except ValidationError as e:
             return {'message': 'Validation failed', 'errors': e.messages}, 400
         captcha_token = validated_data.get("captchaToken")
-        if not captcha_token or not verify_yandex_captcha(captcha_token):
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+
+        if not captcha_token:
+            return {"message": "Капча не пройдена"}, 400
+        if not verify_yandex_captcha(captcha_token, ip):
             return {"message": "Капча не пройдена"}, 400
         email, password = validated_data['email'], validated_data['password']
         if User.has_email(email):

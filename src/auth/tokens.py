@@ -20,16 +20,6 @@ def generate_access_token(user_id: int) -> str:
     return token
 
 
-def generate_email_token(user_id: int) -> str:
-    payload = {
-        'exp': datetime.now() + timedelta(minutes=settings.expire_access_token_time),
-        'iat': datetime.now(),
-        'sub': 'email_verification',
-        'user_id': str(user_id),
-    }
-    return jwt.encode(payload, settings.mail_secret, algorithm='HS256')
-
-
 def validate_token(token: str) -> int | None:
     try:
         secret_key = settings.secret_key
@@ -52,6 +42,16 @@ def validate_token(token: str) -> int | None:
         raise Exception('Токен истёк')
     except jwt.InvalidTokenError:
         raise Exception('Неверный токен')
+
+
+def generate_email_token(user_id: int) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        'exp': now + timedelta(minutes=settings.expire_access_token_time),
+        'iat': now,
+        'sub': 'email_verification',
+    }
+    return jwt.encode(payload, settings.mail_secret, algorithm='HS256')
 
 
 def decode_email_token(token: str) -> int | None:
