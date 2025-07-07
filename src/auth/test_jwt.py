@@ -14,7 +14,7 @@ payload = {
 }
 
 token = jwt.encode(payload, secret, algorithm="HS256")
-print("🔐 Сгенерированный токен:\n", token)
+print(" Сгенерированный токен:\n", token)
 
 # Валидация токена
 decoded = jwt.decode(
@@ -25,6 +25,6 @@ decoded = jwt.decode(
     leeway=10  # На всякий случай
 )
 
-print("✅ Расшифрованный payload:")
+print(" Расшифрованный payload:")
 for key, value in decoded.items():
     print(f"  {key}: {value}")

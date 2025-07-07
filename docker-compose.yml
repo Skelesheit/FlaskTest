@@ -3,7 +3,8 @@ version: '3.8'
 services:
   db:
     image: postgres:13
-    container_name: flask_db
+    restart: unless-stopped
+    container_name: db
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -13,7 +14,7 @@ services:
     volumes:
       - pg-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "user", "-d", "flask_db" ]
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-d", "test_log_reg"]
       interval: 10s
       retries: 5
       start_period: 30s
@@ -23,11 +24,12 @@ services:
 
   flask:
     build: .
+    restart: unless-stopped
     entrypoint: /app/init_db.sh
     command: ["poetry", "run", "gunicorn", "-b", "0.0.0.0:5000", "app:app"]
     ports:
       - "5000:5000"
-    container_name: flask_app
+    container_name: flask-backend
     environment:
       FLASK_APP: app.py
       FLASK_ENV: development
