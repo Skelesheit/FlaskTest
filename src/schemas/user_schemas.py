@@ -2,7 +2,7 @@ from marshmallow import Schema, fields, validate, ValidationError, post_load
 from marshmallow.fields import Nested
 from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
 
-from src.db import models
+from src.db import models, db
 from src.db.enums import UserType
 
 
@@ -18,9 +18,7 @@ class UserSchema(SQLAlchemySchema):
     user_type = auto_field()
     is_verified = auto_field()
     is_filled = auto_field()
-    contact = Nested('ContactSchema')
-    individual_profile = auto_field()
-    legal_entity = auto_field()
+    contact = Nested('ContactSchema', allow_none=True)
 
 
 class RegisterSchema(Schema):
@@ -36,24 +34,42 @@ class LoginSchema(Schema):
 
 class FillShema(Schema):
     user_type = fields.String(required=True)
-    fill = fields.Dict(required=True)
-    contact = Nested('ContactSchema')
+    fill = fields.Raw(required=True)  # 👈 его сам обрабатываешь
+    contact = fields.Raw(required=False, allow_none=True)  # 👈 тоже руками
 
     @post_load
     def process_fill(self, data, **kwargs):
+        user = self.context["user"]
         user_type = UserType(data['user_type'])
         fill_data = data['fill']
+        contact_data = data.get('contact')
+
+        # --- основной профиль ---
         match user_type:
             case user_type.Individual:
-                obj = IndividualProfileSchema().load(fill_data)
+                profile_schema = IndividualProfileSchema()
             case user_type.LegalEntity:
-                obj = LegalEntityProfileSchema().load(fill_data)
+                profile_schema = LegalEntitySchema()
             case user_type.LegalEntityProfile:
-                obj = LegalEntityProfileSchema().load(fill_data)
+                profile_schema = LegalEntityProfileSchema()
             case _:
                 raise ValidationError('Невалидный user_type')
-        obj.user.id = self.context['user'].id
-        return obj
+
+        profile_schema.session = db.session
+        profile = profile_schema.load(fill_data)
+        profile.user_id = user.id
+
+        # --- контакт (если есть) ---
+        contact = None
+        if contact_data:
+            contact_schema = ContactSchema()
+            contact_schema.session = db.session
+            contact = contact_schema.load(contact_data)
+            contact.user_id = user.id
+
+        return {"profile": profile, "contact": contact}
+
+
 
 
 class ContactSchema(SQLAlchemySchema):

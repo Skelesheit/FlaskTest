@@ -58,6 +58,7 @@ class UserLogin(Resource):
             'token_type': 'Bearer',
             'expires_in': 900  # 15 минут
         }, 201)
+
         response.set_cookie(
             'refresh_token',
             refresh_token,
@@ -71,15 +72,59 @@ class UserLogin(Resource):
 
 @user_ns.route("/fill-data", methods=["POST"])
 class UserFillData(Resource):
+    @user_ns.doc(security='BearerAuth')
     @auth_required
-    @user_verified
-    @user_ns.expect(swagger_models.user_model_form)
+    @user_ns.expect(swagger_models.fill_data_model)
+    @user_ns.doc(
+        description="Endpoint for filling user data depending on type",
+        body={
+            "type": "object",  # 👈 это заставляет Swagger показать JSON-поле
+            "required": ["user_type", "fill", "contact"],
+            "properties": {
+                "user_type": {
+                    "type": "string",
+                    "enum": ["ИП", "Юр. лицо", "Физ. лицо"]
+                },
+                "fill": {
+                    "type": "object",
+                    "description": "Данные анкеты, зависят от user_type"
+                },
+                "contact": {
+                    "type": "object",
+                    "properties": {
+                        "city": {"type": "string"},
+                        "phone": {"type": "string"},
+                        "address": {"type": "string"}
+                    }
+                }
+            },
+            "example": {
+                "user_type": "Физ. лицо",
+                "fill": {
+                    "first_name": "Иван",
+                    "last_name": "Иванов",
+                    "patronymic": "Иванович"
+                },
+                "contact": {
+                    "city": "Москва",
+                    "phone": "89999999999",
+                    "address": "Ул. Пушкина"
+                }
+            }
+        }
+    )
     def post(self):
         data = request.get_json()
         try:
-            validated_data = user_schemas.FillShema(context={"user": g.user}).load(data)
+            schema = user_schemas.FillShema()
+            schema.context = {"user": g.user}
+            validated_data = schema.load(data)
+            profile = validated_data["profile"]
+            contact = validated_data["contact"]
         except ValidationError as e:
             return {'message': 'Validation failed', 'errors': e.messages}, 400
-        db.session.add(validated_data)
+        db.session.add(profile)
+        if contact:
+            db.session.add(contact)
         db.session.commit()
         return {'message': 'Forms filled successfully'}, 201

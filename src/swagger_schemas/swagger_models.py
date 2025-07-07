@@ -48,13 +48,12 @@ legal_entity_model = user_ns.model("LegalEntity", {
     "legal_entity_profile": fields.Nested(legal_entity_profile_model)
 })
 
-# User (с вложенностями)
-user_model_form = user_ns.model("User", {
-    "user_id": fields.Integer(required=True),
-    "user_type": fields.String(enum=["ИП", "Юр. лицо", "Физ. лицо"]),
-    "contact": fields.Nested(contact_model, required=False),
-    "individual_profile": fields.Nested(individual_profile_model, required=False),
-    "legal_entity": fields.Nested(legal_entity_model, required=False),
+fill_data_model = user_ns.model("FillData", {
+    "user_type": fields.String(required=True, enum=["ИП", "Юр. лицо", "Физ. лицо"]),
+    "fill": fields.Nested(individual_profile_model),
+    "contact": fields.Nested(contact_model, required=True)
 })
+
+
 
 # для дадаты

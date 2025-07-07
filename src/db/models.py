@@ -85,13 +85,13 @@ class RefreshToken(Base):
 
     @property
     def expired(self) -> bool:
-        return self.expires_at > datetime.now()
+        return self.expires_at < datetime.now()
 
     @classmethod
     def create(cls, user_id: int) -> str:
         cls.delete_by_id(user_id)
         token = secrets.token_urlsafe(64)
-        expires = datetime.now() + timedelta(days=settings.expire_refresh_token_days)
+        expires = datetime.now() + timedelta(days=settings.expire_refresh_token_time)
         refresh_token = RefreshToken(
             user_id=user_id,
             token=token,
@@ -103,12 +103,11 @@ class RefreshToken(Base):
 
     @classmethod
     def delete_by_id(cls, user_id: int) -> 'None':
-        db.session.where(cls.user_id == user_id).delete()
+        db.session.query(cls).filter(cls.user_id == user_id).delete()
         db.session.commit()
 
-    @classmethod
-    def delete_token(cls) -> None:
-        db.session.delete(cls.token)
+    def delete_token(self) -> None:
+        db.session.delete(self)
         db.session.commit()
 
 

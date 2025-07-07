@@ -9,22 +9,18 @@ from src.db.models import User
 def auth_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        token = None
         auth_header = request.headers.get('Authorization')
-        if auth_header and auth_header.startswith('Bearer'):
-            token = auth_header.split(' ')[1]
-        else:
-            token = request.cookies.get('access_token')
-        if not token:
-            return jsonify({'message': 'Not authorized'}), 401
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return {'message': 'Not authorized'}, 401
+        token = auth_header.split(' ')[1]
         try:
             user_id = tokens.validate_token(token)
         except Exception as e:
-            return jsonify({'message': str(e)}), 401
+            return {'message': str(e)}, 401
         g.user = User.get_by_id(user_id)
         return f(*args, **kwargs)
-
     return decorated_function
+
 
 
 def user_verified(f):

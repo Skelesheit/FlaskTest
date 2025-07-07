@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, g
 from flask_restx import Api
 
 from config import settings
@@ -7,6 +7,7 @@ from src.handlers.dadata import dadata_ns
 from src.handlers.mail import mail_ns
 from src.handlers.user import user_ns
 from src.services.mail.extentions import init_extensions
+
 
 def create_app():
     app = Flask(__name__)

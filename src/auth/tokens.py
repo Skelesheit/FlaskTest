@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import jwt
 
@@ -6,13 +6,18 @@ from config import settings
 
 
 def generate_access_token(user_id: int) -> str:
+    now = datetime.now(timezone.utc)
     payload = {
-        'exp': datetime.now() + timedelta(minutes=settings.expire_access_token_time),
-        'iat': datetime.now(),
+        'exp': now + timedelta(minutes=settings.expire_access_token_time),
+        'iat': now,
         'sub': str(user_id),
         'type': 'access'
     }
-    return jwt.encode(payload, settings.secret_key, algorithm='HS256')
+    secret_key = settings.secret_key
+    print("secret on generate:", secret_key)
+    token = jwt.encode(payload, secret_key, algorithm='HS256')
+    print("token by generate:", token)
+    return token
 
 
 def generate_email_token(user_id: int) -> str:
@@ -27,10 +32,22 @@ def generate_email_token(user_id: int) -> str:
 
 def validate_token(token: str) -> int | None:
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=['HS256'])
+        secret_key = settings.secret_key
+        print("secret on validate:", secret_key)
+        print(f"settings.secret_key = {settings.secret_key!r}")
+        print("token by validate:", token)
+        print(f"Token raw: {repr(token)}")
+        payload = jwt.decode(
+            token,
+            settings.secret_key,
+            algorithms=["HS256"],
+            options={"require": ["exp", "iat", "sub", "type"]},
+            leeway=10
+        )
+
         if payload.get('type') != 'access':
             raise Exception('Неверный тип токена')
-        return payload['user_id']
+        return int(payload['sub'])
     except jwt.ExpiredSignatureError:
         raise Exception('Токен истёк')
     except jwt.InvalidTokenError:
