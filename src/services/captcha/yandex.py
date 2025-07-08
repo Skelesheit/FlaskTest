@@ -3,10 +3,8 @@ from flask import current_app
 from config import settings
 
 def verify_yandex_captcha(token: str, ip: str | int) -> bool:
-    secret = settings.yandex_secret
-    print(secret)
     data = {
-        "secret": 'ysc2_zyXLetN1VMiTQJmBI9Cilv6MLBaWVzpKwzb7R7fhfbfdccab',
+        "secret": settings.yandex_secret,
         "token": token,
         # "ip": str(ip),
     }
