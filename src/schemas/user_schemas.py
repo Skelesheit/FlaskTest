@@ -43,6 +43,7 @@ class FillShema(Schema):
         user_type = UserType(data['user_type'])
         fill_data = data['fill']
         contact_data = data.get('contact')
+        fill_data['user_id'] = user.id
 
         # --- основной профиль ---
         match user_type:
@@ -51,22 +52,14 @@ class FillShema(Schema):
             case user_type.LegalEntity:
                 profile_schema = LegalEntitySchema()
             case user_type.LegalEntityProfile:
-                profile_schema = LegalEntityProfileSchema()
+                profile_schema = LegalEntitySchema()
             case _:
                 raise ValidationError('Невалидный user_type')
-
-        profile_schema.session = db.session
-        profile = profile_schema.load(fill_data)
-        profile.user_id = user.id
-
-        # --- контакт (если есть) ---
-        contact = None
-        if contact_data:
-            contact_schema = ContactSchema()
-            contact_schema.session = db.session
-            contact = contact_schema.load(contact_data)
-            contact.user_id = user.id
-
+        profile = profile_schema.load(fill_data, session=db.session)
+        # --- контакт ---
+        contact_schema = ContactSchema(session=db.session)
+        contact = contact_schema.load(contact_data)
+        contact.user_id = user.id
         return {"profile": profile, "contact": contact}
 
 
@@ -76,6 +69,7 @@ class ContactSchema(SQLAlchemySchema):
     class Meta:
         model = models.Contact
         load_instance = True
+        sqla_session = db.session
 
     id = auto_field()
     city = auto_field()
@@ -87,8 +81,10 @@ class IndividualProfileSchema(SQLAlchemySchema):
     class Meta:
         model = models.IndividualProfile
         load_instance = True
+        sqla_session = db.session
 
     id = auto_field()
+    user_id = auto_field()
     first_name = auto_field()
     last_name = auto_field()
     patronymic = auto_field()
@@ -99,13 +95,14 @@ class LegalEntitySchema(SQLAlchemySchema):
         model = models.LegalEntity
         load_instance = True
         include_relationship = True
+        sqla_session = db.session
 
     id = auto_field()
     user_id = auto_field()
     ogrn = auto_field()
     inn = auto_field()
     management_name = auto_field()
-    legal_entity_profile = fields.Nested('LegalEntityProfileSchema', exclude=('legal_entity',))
+    legal_entity_profile = fields.Nested('LegalEntityProfileSchema', required=False, allow_none=True)
 
 
 class LegalEntityProfileSchema(SQLAlchemySchema):
@@ -113,11 +110,11 @@ class LegalEntityProfileSchema(SQLAlchemySchema):
         model = models.LegalEntityProfile
         load_instance = True
         include_relationship = True
+        sqla_session = db.session
 
     id = auto_field()
-    legal_id = auto_field()
+    legal_id = auto_field(dump_only=True)
     org_name = auto_field()
     kpp = auto_field()
     opf_full = auto_field()
     opf_short = auto_field()
-    legal_entity = fields.Nested(LegalEntitySchema, only=("id",))

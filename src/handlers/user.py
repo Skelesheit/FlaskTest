@@ -1,6 +1,7 @@
 from flask import request, make_response, g
 from flask_restx import Resource
 from marshmallow import ValidationError
+from pprint import pprint
 
 from src.auth import tokens
 from src.auth.decorators import auth_required, user_verified
@@ -119,6 +120,7 @@ class UserFillData(Resource):
     )
     def post(self):
         data = request.get_json()
+        pprint(data, indent=2)
         try:
             schema = user_schemas.FillShema()
             schema.context = {"user": g.user}
@@ -126,9 +128,9 @@ class UserFillData(Resource):
             profile = validated_data["profile"]
             contact = validated_data["contact"]
         except ValidationError as e:
+            print(e.messages)
             return {'message': 'Validation failed', 'errors': e.messages}, 400
         db.session.add(profile)
-        if contact:
-            db.session.add(contact)
+        db.session.add(contact)
         db.session.commit()
         return {'message': 'Forms filled successfully'}, 201
