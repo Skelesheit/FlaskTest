@@ -3,6 +3,7 @@ from flask_restx import Resource
 from marshmallow import ValidationError
 from pprint import pprint
 
+from config import settings
 from src.auth import tokens
 from src.auth.decorators import auth_required, user_verified
 from src.db import db
@@ -61,7 +62,7 @@ class UserLogin(Resource):
         response = make_response({
             'access_token': access_token,
             'token_type': 'Bearer',
-            'expires_in': 900  # 15 минут
+            'expires_in': 60 * settings.expire_access_token_time
         }, 201)
 
         response.set_cookie(

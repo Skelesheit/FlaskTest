@@ -14,6 +14,7 @@ def create_app():
     app = Flask(__name__)
 
     # пока что пусть будут все запросы проходить
+    print("front url:", settings.frontend_url)
     CORS(app, resources={r"/*": {"origins": settings.frontend_url}}, supports_credentials=True)
     app.config.update(
         MAIL_SERVER=settings.mail_server,

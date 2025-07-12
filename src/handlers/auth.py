@@ -25,6 +25,7 @@ class RefreshToken(Resource):
         # берём юзера у которого есть refresh:
         # затем либо logout, либо создать новый refresh
         if token.expired:
+            print(f'refresh токен реально истёк лололо: {token.id, token.expired}')
             token.delete_token()
             return {"message": "Refresh token has expired."}, 401
         # сделаем по соображениям безопасности - обновляем и refresh тоже
@@ -36,7 +37,7 @@ class RefreshToken(Resource):
             status=200,
             mimetype='application/json'
         )
-        resp.set_cookie("refresh_token", refresh_token, httponly=True, samesite='Lax')
+        resp.set_cookie("refresh_token", refresh_token, secure=False, httponly=True, samesite='Lax')
         return resp
 
 

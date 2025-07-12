@@ -38,7 +38,7 @@ class Settings:
     base_url: str = os.getenv("BASE_URL", "http://localhost:5000")
 
     # Vue Frontend
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:4700")
+    frontend_url = os.getenv("FRONTEND_URL", "http://127.0.0.1:5174")
 
     # Yandex captcha
     yandex_url_verify = os.getenv("YANDEX_URL_VERIFY")
@@ -47,10 +47,6 @@ class Settings:
     # Dadata service
     dadata_token = os.getenv("DADATA_TOKEN")
     dadata_api_url = os.getenv("DADATA_API_URL")
-
-    # Admin panel
-    admin_email = os.getenv("ADMIN_EMAIL")
-    admin_password = os.getenv("ADMIN_PASSWORD")
 
     @property
     def db_url(self) -> str:
